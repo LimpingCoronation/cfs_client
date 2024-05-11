@@ -15,5 +15,8 @@
       "dom.iterable",
       "scripthost"
     ]
-  }
+  },
+  "vue/no-unused-vars": ["error", {
+    "ignorePattern": "^_"
+  }]
 }
