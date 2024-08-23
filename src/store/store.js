@@ -2,7 +2,7 @@ import { createStore } from 'vuex';
 import axios from 'axios';
 import router from '@/routers/router.js';
 
-const baseUrl = 'http://localhost:9000/api/v1/';
+const baseUrl = 'http://93.157.251.250:9000/api/v1/';
 
 const store = createStore({
     state: () => ({
@@ -11,6 +11,8 @@ const store = createStore({
         files: [],
         isFilesLoading: false,
         isFileUploading: false,
+        isFileDownloading: false,
+        fileDownloadingId: -1,
     }),
     getters: {},
     mutations: {
@@ -31,6 +33,12 @@ const store = createStore({
         },
         setIsFileUploading(state, isFileUploading) {
             state.isFileUploading = isFileUploading;
+        },
+        setIsFileDownloading(state, value) {
+            state.isFileDownloading = value
+        },
+        setFileDownloadingId(state, value) {
+            state.fileDownloadingId = value
         }
     },
     actions: {
@@ -57,7 +65,9 @@ const store = createStore({
                 commit('setIsAuth', true);
                 router.push('/');
             }).catch(err => {
-                commit('addError', err.response.data.non_field_errors[0])
+                if (err.response.data.non_field_errors) {
+                    commit('addError', err.response.data.non_field_errors[0])
+                }
             })
         },
         load({ commit }) {
@@ -80,16 +90,23 @@ const store = createStore({
                     console.log(err);
                 });
         },
-        downloadFile(_, { id, label }) {
+        downloadFile({ commit }, { id, label }) {
+            commit('setIsFileDownloading', true)
+            commit('setFileDownloadingId', id)
+
             axios.get(baseUrl + `download/${id}`, { responseType: 'blob' })
             .then(response => {
-                const blob = new Blob([response.data], { type: 'application/pdf' })
+                const blob = new Blob([response.data], { type: 'application/octet-stream' })
                 const link = document.createElement('a')
                 link.href = URL.createObjectURL(blob)
                 link.download = label;
                 link.click()
                 URL.revokeObjectURL(link.href)
             }).catch(console.error)
+            .finally(() => {
+                commit('setIsFileDownloading', false)
+                commit('setFileDownloadingId', id)
+            })
         },
         deleteFile({ dispatch }, id) {
             axios.delete(baseUrl + `delete/${id}/`)

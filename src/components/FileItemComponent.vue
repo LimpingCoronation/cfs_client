@@ -2,7 +2,8 @@
     <div class="flex justify-between items-center mt-4">
         <p class="font-normal text-lg">{{ file.file.name.split('/')[1] }}</p>
         <div class="flex gap-[20px] items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="green" class="w-8 h-8 cursor-pointer" @click="redirectToDownload">
+            <indicator-component v-if="isFileDownloading && file.id == fileDownloadingId" />
+            <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="green" class="w-8 h-8 cursor-pointer" @click="redirectToDownload">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="red" class="w-8 h-8 cursor-pointer" @click="deleteThisFile">
@@ -15,13 +16,20 @@
 <script>
     import { mapState, mapActions } from 'vuex';
 
+    import IndicatorComponent from './IndicatorComponent.vue';
+
     export default {
         props: {
             file: [Object],
         },
+        components: {
+            IndicatorComponent
+        },
         computed: {
             ...mapState({
                 baseUrl: state => state.baseUrl,
+                isFileDownloading: state => state.isFileDownloading,
+                fileDownloadingId: state => state.fileDownloadingId
             })
         },
         methods: {
